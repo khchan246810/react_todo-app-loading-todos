@@ -2,6 +2,8 @@
 /* eslint-disable jsx-a11y/control-has-associated-label */
 import React from 'react';
 import classNames from 'classnames';
+import PropTypes from 'prop-types';
+
 import { Todo as TodoType } from '../types/Todo';
 
 type Props = {
@@ -41,13 +43,19 @@ export const Todo: React.FC<Props> = ({ todo, isLoading }) => {
         {todo.title}
       </span>
 
-      <button
-        type="button"
-        className="todo__remove"
-        data-cy="TodoDelete"
-      >
+      <button type="button" className="todo__remove" data-cy="TodoDelete">
         ×
       </button>
     </div>
   );
+};
+
+Todo.propTypes = {
+  todo: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    userId: PropTypes.number.isRequired,
+    title: PropTypes.string.isRequired,
+    completed: PropTypes.bool.isRequired,
+  }).isRequired,
+  isLoading: PropTypes.bool.isRequired,
 };

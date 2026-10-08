@@ -80,7 +80,9 @@ export const App: React.FC = () => {
         <header className="todoapp__header">
           <button
             type="button"
-            className="todoapp__toggle-all"
+            className={classNames('todoapp__toggle-all', {
+              active: loadedTodos.length > 0 && activeTodos.length === 0,
+            })}
             data-cy="ToggleAllButton"
           />
 
@@ -99,7 +101,7 @@ export const App: React.FC = () => {
         )}
 
         {!isLoading && loadedTodos.length > 0 && (
-          <TodoList todos={visibleTodos} isLoading={isLoading} />
+          <TodoList todos={visibleTodos} />
         )}
 
         {!isLoading && loadedTodos.length > 0 && (

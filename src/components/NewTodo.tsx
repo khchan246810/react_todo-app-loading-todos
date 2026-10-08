@@ -24,7 +24,10 @@ export const NewTodo: React.FC = () => {
         placeholder="What needs to be done?"
         value={title}
         onChange={event => setTitle(event.target.value)}
+        autoFocus
       />
     </form>
   );
 };
+
+NewTodo.propTypes = {};
