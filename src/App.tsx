@@ -1,15 +1,26 @@
-/* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable jsx-a11y/control-has-associated-label */
 import React, { useEffect, useState } from 'react';
+import classNames from 'classnames';
+
 import { UserWarning } from './UserWarning';
 import { USER_ID, getTodos } from './api/todos';
-import { Todo } from './types/Todo';
+import { Todo as TodoType } from './types/Todo';
+import { Filter } from './components/Filter';
+import { TodoList } from './components/TodoList';
+import { NewTodo } from './components/NewTodo';
+
+export const FILTERS = {
+  all: 'all',
+  completed: 'completed',
+  active: 'active',
+} as const;
+
+type FilterType = (typeof FILTERS)[keyof typeof FILTERS];
 
 export const App: React.FC = () => {
-  const [todos, setTodos] = useState<Todo[] | null>(null);
+  const [todos, setTodos] = useState<TodoType[] | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
-
-  const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
+  const [filter, setFilter] = useState<FilterType>(FILTERS.all);
 
   useEffect(() => {
     setErrorMessage('');
@@ -46,15 +57,16 @@ export const App: React.FC = () => {
   const loadedTodos = todos || [];
 
   const visibleTodos = loadedTodos.filter(todo => {
-    if (filter === 'active') {
-      return !todo.completed;
-    }
+    switch (filter) {
+      case FILTERS.active:
+        return !todo.completed;
 
-    if (filter === 'completed') {
-      return todo.completed;
-    }
+      case FILTERS.completed:
+        return todo.completed;
 
-    return true;
+      default:
+        return true;
+    }
   });
 
   const activeTodos = loadedTodos.filter(todo => !todo.completed);
@@ -72,14 +84,7 @@ export const App: React.FC = () => {
             data-cy="ToggleAllButton"
           />
 
-          <form>
-            <input
-              data-cy="NewTodoField"
-              type="text"
-              className="todoapp__new-todo"
-              placeholder="What needs to be done?"
-            />
-          </form>
+          <NewTodo />
         </header>
 
         {isLoading && (
@@ -94,47 +99,7 @@ export const App: React.FC = () => {
         )}
 
         {!isLoading && loadedTodos.length > 0 && (
-          <section className="todoapp__main" data-cy="TodoList">
-            {visibleTodos.map(todo => (
-              <div
-                key={todo.id}
-                data-cy="Todo"
-                className={`todo ${todo.completed ? 'completed' : ''}`}
-              >
-                <div
-                  data-cy="TodoLoader"
-                  className={`modal overlay ${
-                    isLoading ? 'is-active' : ''
-                  }`}
-                >
-                  <div className="modal-background has-background-white-ter" />
-                  <div className="loader" />
-                </div>
-
-                <label className="todo__status-label">
-                  <input
-                    data-cy="TodoStatus"
-                    type="checkbox"
-                    className="todo__status"
-                    checked={todo.completed}
-                    readOnly
-                  />
-                </label>
-
-                <span data-cy="TodoTitle" className="todo__title">
-                  {todo.title}
-                </span>
-
-                <button
-                  type="button"
-                  className="todo__remove"
-                  data-cy="TodoDelete"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </section>
+          <TodoList todos={visibleTodos} isLoading={isLoading} />
         )}
 
         {!isLoading && loadedTodos.length > 0 && (
@@ -143,49 +108,7 @@ export const App: React.FC = () => {
               {activeTodos.length} items left
             </span>
 
-            <nav className="filter" data-cy="Filter">
-              <a
-                href="#/"
-                className={`filter__link ${
-                  filter === 'all' ? 'selected' : ''
-                }`}
-                data-cy="FilterLinkAll"
-                onClick={event => {
-                  event.preventDefault();
-                  setFilter('all');
-                }}
-              >
-                All
-              </a>
-
-              <a
-                href="#/active"
-                className={`filter__link ${
-                  filter === 'active' ? 'selected' : ''
-                }`}
-                data-cy="FilterLinkActive"
-                onClick={event => {
-                  event.preventDefault();
-                  setFilter('active');
-                }}
-              >
-                Active
-              </a>
-
-              <a
-                href="#/completed"
-                className={`filter__link ${
-                  filter === 'completed' ? 'selected' : ''
-                }`}
-                data-cy="FilterLinkCompleted"
-                onClick={event => {
-                  event.preventDefault();
-                  setFilter('completed');
-                }}
-              >
-                Completed
-              </a>
-            </nav>
+            <Filter filter={filter} setFilter={setFilter} />
 
             <button
               type="button"
@@ -201,9 +124,15 @@ export const App: React.FC = () => {
 
       <div
         data-cy="ErrorNotification"
-        className={`notification is-danger is-light has-text-weight-normal ${
-          errorMessage ? '' : 'hidden'
-        }`}
+        className={classNames(
+          'notification',
+          'is-danger',
+          'is-light',
+          'has-text-weight-normal',
+          {
+            hidden: !errorMessage,
+          },
+        )}
       >
         <button
           data-cy="HideErrorButton"
